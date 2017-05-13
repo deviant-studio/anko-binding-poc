@@ -7,7 +7,7 @@ import kotlinx.coroutines.experimental.launch
 // todo validation
 class MainViewModel(val view: View) : ViewModel {
 
-    var login: CharSequence by binding("")
+    var login: CharSequence by binding("asd")
     var password: CharSequence by binding("")
     var isRefreshing: Boolean by binding(false)
 

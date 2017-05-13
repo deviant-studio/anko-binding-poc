@@ -3,6 +3,7 @@ package ds.ankobindings
 import java.util.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty0
 
 private val bindings = WeakHashMap<ViewModel, MutableMap<String, BindingData<*, *>>>()
 
@@ -30,16 +31,19 @@ private class BindingProperty<T : Any?>(initialValue: T) : ReadWriteProperty<Vie
 private inline fun <T> getBinding(vm: ViewModel, prop: KProperty<*>): BindingData<T, T>? =
     bindings.getOrPut(vm, { mutableMapOf<String, BindingData<*, *>>() })[prop.name] as BindingData<T, T>?
 
-fun <T : Any?> ViewModel.bind(prop: KProperty<T>, setter: (T) -> Unit, getter: (() -> T)? = null) {
+fun <T : Any?> ViewModel.bind(prop: KProperty0<T>, setter: (T) -> Unit, getter: (() -> T)? = null) {
     println("bind ${prop.name}")
     val binding = getBinding<T>(this, prop) ?: BindingData()
     binding.setters += setter
     binding.field = prop.name
-    if (binding.getter == null)
-        binding.getter = getter
+    if (getter != null)
+        if (binding.getter == null)
+            binding.getter = getter
+        else
+            error("Only one getter per property allowed")
 
+    setter(prop.get())  // initialize view
     bindings[this]!!.put(prop.name, binding)
-
 }
 
 fun <T : Any?> ViewModel.unbind(prop: KProperty<T>) {
