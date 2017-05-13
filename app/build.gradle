@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "ds.ankobindings"
+        minSdkVersion 19
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    def supportVersion = '25.3.1'
+    def ankoVersion = "0.10.0-beta-2"
+
+    // supportlib stuff
+    compile "com.android.support:appcompat-v7:$supportVersion"
+    compile "com.android.support:design:$supportVersion"
+
+    // anko
+    compile 'org.jetbrains.anko:anko-sdk19:' + ankoVersion              // https://github.com/Kotlin/anko
+    compile 'org.jetbrains.anko:anko-appcompat-v7:' + ankoVersion
+    compile 'org.jetbrains.anko:anko-design:' + ankoVersion
+    compile 'org.jetbrains.anko:anko-sdk19-coroutines:' + ankoVersion
+    compile 'org.jetbrains.anko:anko-sdk19-listeners:' + ankoVersion
+
+    // kotlin
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+
+}
