@@ -11,7 +11,7 @@ import org.jetbrains.anko.support.v4.swipeRefreshLayout
 
 class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
 
-    constructor():this(MainViewModel(DummyView))
+    constructor() : this(MainViewModel(DummyView))
 
     override fun createView(ui: AnkoContext<MainActivity>): View = with(ui) {
         coordinatorLayout {
@@ -29,7 +29,11 @@ class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
                         editText {
                             hint = "Email"
                             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-                            viewModel.bind(viewModel::login, this::setText, this::getText)
+                            bind(
+                                viewModel { it::login },
+                                this::setText,
+                                this::getText
+                            )
                         }
                     }
                     textInputLayout {
@@ -46,13 +50,11 @@ class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
                             onClick {
                                 viewModel.onSignIn()
                             }
-                            viewModel.bind(viewModel::isRefreshing, {
-                                isEnabled = !it
-                            })
+                            bind(viewModel { it::isRefreshing }, { isEnabled = !it })
                         }.lparams(lp)
                         button("Sign Up") {
                             onClick { viewModel.onSignUp() }
-                            viewModel.bind(viewModel::isRefreshing, { isEnabled = !it })
+                            bind(viewModel { it::isRefreshing }, { isEnabled = !it })
                         }.lparams(lp)
                     }
                 }

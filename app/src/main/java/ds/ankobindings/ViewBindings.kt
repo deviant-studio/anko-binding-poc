@@ -46,6 +46,13 @@ fun <T : Any?> ViewModel.bind(prop: KProperty0<T>, setter: (T) -> Unit, getter: 
     bindings[this]!!.put(prop.name, binding)
 }
 
+// alternative bind
+fun <T : Any?> android.view.View.bind(vmData: Pair<ViewModel, KProperty0<T>>, setter: (T) -> Unit, getter: (() -> T)? = null) {
+    vmData.first.bind(vmData.second, setter, getter)
+}
+
+operator fun <T : ViewModel, P> T.invoke(block: (T) -> KProperty0<P>): Pair<T, KProperty0<P>> = Pair(this, block(this))
+
 fun <T : Any?> ViewModel.unbind(prop: KProperty<T>) {
     bindings[this]?.remove(prop.name)
 }

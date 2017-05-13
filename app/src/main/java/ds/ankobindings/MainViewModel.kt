@@ -22,7 +22,7 @@ class MainViewModel(val view: View) : ViewModel {
             e.printStackTrace()
         } finally {
             isRefreshing = false
-            view.showAlert("Logged in with creds $login/$password")
+            view.showAlert("Logged in with creds [$login:$password]")
         }
 
     }
