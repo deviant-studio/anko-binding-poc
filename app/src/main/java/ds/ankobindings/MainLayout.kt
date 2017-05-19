@@ -19,7 +19,7 @@ class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
             swipeRefreshLayout {
                 isEnabled = false
 
-                viewModel.bind(viewModel::isRefreshing, this::setRefreshing, this::isRefreshing)
+                bind(viewModel::isRefreshing, this::setRefreshing, this::isRefreshing)
 
                 verticalLayout {
                     horizontalPadding = dip(72)
@@ -30,7 +30,7 @@ class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
                             hint = "Email"
                             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
                             bind(
-                                viewModel { it::login },
+                                viewModel::login,
                                 this::setText,
                                 this::getText
                             )
@@ -40,7 +40,7 @@ class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
                         editText {
                             hint = "Password"
                             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                            viewModel.bind(viewModel::password, this::setText, this::getText)
+                            bind(viewModel::password, this::setText, this::getText)
                         }
                     }
                     linearLayout {
@@ -50,11 +50,11 @@ class MainLayout(val viewModel: MainViewModel) : AnkoComponent<MainActivity> {
                             onClick {
                                 viewModel.onSignIn()
                             }
-                            bind(viewModel { it::isRefreshing }, { isEnabled = !it })
+                            bind(viewModel::isRefreshing, { isEnabled = !it })
                         }.lparams(lp)
                         button("Sign Up") {
                             onClick { viewModel.onSignUp() }
-                            bind(viewModel { it::isRefreshing }, { isEnabled = !it })
+                            bind(viewModel::isRefreshing, { isEnabled = !it })
                         }.lparams(lp)
                     }
                 }

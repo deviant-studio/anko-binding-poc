@@ -1,20 +1,22 @@
 package ds.ankobindings
 
+import android.view.View
 import java.util.*
+import kotlin.jvm.internal.CallableReference
 import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 
 private val bindings = WeakHashMap<ViewModel, MutableMap<String, BindingData<*, *>>>()
 
-fun <T : Any?> binding(initialValue: T): ReadWriteProperty<ViewModel, T> = BindingProperty(initialValue)
+inline fun <reified T : Any> binding(initialValue: T? = null): ReadWriteProperty<ViewModel, T> = BindingProperty(initialValue, T::class)
 
-private class BindingProperty<T : Any?>(initialValue: T) : ReadWriteProperty<ViewModel, T> {
-    private var value = initialValue
+class BindingProperty<T : Any>(var value: T?, val type: KClass<T>) : ReadWriteProperty<ViewModel, T> {
 
     override fun getValue(thisRef: ViewModel, property: KProperty<*>): T {
         val b = getBinding<T>(thisRef, property)?.getter
-        return b?.invoke() ?: value
+        return b?.invoke() ?: value ?: default(type)
     }
 
     override fun setValue(thisRef: ViewModel, property: KProperty<*>, value: T) {
@@ -25,15 +27,36 @@ private class BindingProperty<T : Any?>(initialValue: T) : ReadWriteProperty<Vie
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
+    fun default(cls: KClass<T>): T {
+        return when (cls) {
+            String::class -> "" as T
+            CharSequence::class -> "" as T
+            java.lang.Integer::class -> 0 as T
+            java.lang.Boolean::class -> false as T
+            java.lang.Float::class -> 0f as T
+            java.lang.Double::class -> 0.0 as T
+            else -> cls.java.newInstance()
+        }
+    }
+
 }
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 private inline fun <T> getBinding(vm: ViewModel, prop: KProperty<*>): BindingData<T, T>? =
     bindings.getOrPut(vm, { mutableMapOf<String, BindingData<*, *>>() })[prop.name] as BindingData<T, T>?
 
-fun <T : Any?> ViewModel.bind(prop: KProperty0<T>, setter: (T) -> Unit, getter: (() -> T)? = null) {
+
+// alternative bind
+@Suppress("unused")
+fun <T : Any?> View.bind(prop: KProperty0<T>, setter: (T) -> Unit, getter: (() -> T)? = null) {
+    bindInternal(prop, setter, getter)
+}
+
+private fun <T : Any?> bindInternal(prop: KProperty0<T>, setter: (T) -> Unit, getter: (() -> T)? = null) {
+    val owner: ViewModel = (prop as CallableReference).boundReceiver as ViewModel
     println("bind ${prop.name}")
-    val binding = getBinding<T>(this, prop) ?: BindingData()
+    val binding = getBinding<T>(owner, prop) ?: BindingData()
     binding.setters += setter
     binding.field = prop.name
     if (getter != null)
@@ -43,12 +66,7 @@ fun <T : Any?> ViewModel.bind(prop: KProperty0<T>, setter: (T) -> Unit, getter: 
             error("Only one getter per property allowed")
 
     setter(prop.get())  // initialize view
-    bindings[this]!!.put(prop.name, binding)
-}
-
-// alternative bind
-fun <T : Any?> android.view.View.bind(vmData: Pair<ViewModel, KProperty0<T>>, setter: (T) -> Unit, getter: (() -> T)? = null) {
-    vmData.first.bind(vmData.second, setter, getter)
+    bindings[owner]!!.put(prop.name, binding)
 }
 
 operator fun <T : ViewModel, P> T.invoke(block: (T) -> KProperty0<P>): Pair<T, KProperty0<P>> = Pair(this, block(this))
@@ -61,7 +79,7 @@ fun ViewModel.unbindAll() {
     bindings.remove(this)
 }
 
-fun ViewModel.debug() {
+fun ViewModel.debugBindings() {
     bindings[this]?.forEach { k, v ->
         println("for ${v.field}: id=$k getter=${v.getter} setters=${v.setters.size}")
     }
@@ -75,3 +93,4 @@ private class BindingData<T : Any?, R : Any?> {
 }
 
 interface ViewModel
+
